@@ -6,7 +6,7 @@ export const Hero = t.type({
   id: UUID,
   name: t.string,
   location: t.string,
-  powers: t.array(Power)
+  powers: t.array(Power),
 });
 
 export type Hero = t.TypeOf<typeof Hero>;
