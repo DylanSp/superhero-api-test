@@ -31,7 +31,9 @@ describe("Hero API", () => {
     // Assert
     expect(response.status).toBe(201);
     expect(fromRight(Hero.decode(response.data))).toEqual(hero);
-    // TODO - check Location header
+    expect(
+      (response.headers["location"] as string).endsWith(`/heroes/${hero.id}`)
+    ).toBeTruthy();
   });
 
   it("Returns 422 Unprocessable Entity when attempting to create an existing hero", async () => {
