@@ -131,4 +131,10 @@ describe("Hero API", () => {
     expect(getResponse.status).toBe(200);
     expect(fromRight(Hero.decode(getResponse.data))).toEqual(updatedHero);
   });
+
+  // TODO - test that response to update has 200 status code, returns hero details, location
+
+  // TODO - test that update to nonexistent hero returns 404
+
+  // TODO - test that update with inconsistent IDs in route and hero returns 400
 });
