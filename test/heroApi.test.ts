@@ -106,4 +106,29 @@ describe("Hero API", () => {
     const returnedHeroes = fromRight(t.array(Hero).decode(getResponse.data));
     expect(returnedHeroes).toContainEqual(hero);
   });
+
+  it("Returns updated details after updating a hero", async () => {
+    // Arrange
+    const initialHero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Initial Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+
+    await axios.post("/heroes", initialHero);
+
+    const updatedHero: Hero = {
+      ...initialHero,
+      name: "Updated Hero",
+    };
+    await axios.post(`/heroes/${initialHero.id}`, updatedHero);
+
+    // Act
+    const getResponse = await axios.get(`/heroes/${updatedHero.id}`);
+
+    // Assert
+    expect(getResponse.status).toBe(200);
+    expect(fromRight(Hero.decode(getResponse.data))).toEqual(updatedHero);
+  });
 });
