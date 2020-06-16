@@ -52,7 +52,7 @@ describe("Hero API", () => {
       location: "Test Suite",
       powers: [flightPower],
     };
-    await fpAxios.post("/heroes", hero);
+    await axios.post("/heroes", hero);
 
     // Act
     const response = await fpAxios.post("/heroes", hero);
