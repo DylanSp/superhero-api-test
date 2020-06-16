@@ -136,7 +136,7 @@ describe("Hero API", () => {
     expect(fromRight(Hero.decode(getResponse.data))).toEqual(updatedHero);
   });
 
-  it("Returns 200 OK response with hero data, location when updating an hero", async () => {
+  it("Returns 200 OK response with hero data when updating a hero", async () => {
     // Arrange
     const initialHero: Hero = {
       id: uuidv4() as UUID,
@@ -176,7 +176,7 @@ describe("Hero API", () => {
     expect(fromLeft(response).response?.status).toBe(404);
   });
 
-  it("Returns 400 Bad Request when trying to update with inconsistent IDs", async () => {
+  it("Returns 400 Bad Request when trying to update a hero with inconsistent IDs", async () => {
     // Arrange
     const initialHero: Hero = {
       id: uuidv4() as UUID,
