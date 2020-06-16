@@ -1,3 +1,7 @@
+// this test suite uses both axios and fpAxios
+// axios is used when we wish to fail a test on an error;
+// fpAxios is used to more easily capture expected 4xx errors
+
 import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import { UUID } from "io-ts-types/lib/UUID";
@@ -132,9 +136,115 @@ describe("Hero API", () => {
     expect(fromRight(Hero.decode(getResponse.data))).toEqual(updatedHero);
   });
 
-  // TODO - test that response to update has 200 status code, returns hero details, location
+  it("Returns 200 OK response with hero data, location when updating an hero", async () => {
+    // Arrange
+    const initialHero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Initial Hero",
+      location: "Test Suite",
+      powers: [],
+    };
 
-  // TODO - test that update to nonexistent hero returns 404
+    await axios.post("/heroes", initialHero);
 
-  // TODO - test that update with inconsistent IDs in route and hero returns 400
+    const updatedHero: Hero = {
+      ...initialHero,
+      name: "Updated Hero",
+    };
+
+    // Act
+    const response = await axios.post(`/heroes/${updatedHero.id}`, updatedHero);
+
+    // Assert
+    expect(response.status).toBe(200);
+    expect(fromRight(Hero.decode(response.data))).toEqual(updatedHero);
+  });
+
+  it("Returns 404 Not Found when trying to update a nonexistent hero", async () => {
+    // Arrange
+    const hero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Nonexistent Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+
+    // Act
+    const response = await fpAxios.post(`/heroes/${hero.id}`, hero);
+
+    // Assert
+    expect(fromLeft(response).response?.status).toBe(404);
+  });
+
+  it("Returns 400 Bad Request when trying to update with inconsistent IDs", async () => {
+    // Arrange
+    const initialHero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Initial Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+
+    await axios.post("/heroes", initialHero);
+
+    const updatedHero: Hero = {
+      ...initialHero,
+      id: uuidv4() as UUID,
+      name: "Updated Hero",
+    };
+
+    // Act
+    const response = await fpAxios.post(
+      `/heroes/${initialHero.id}`,
+      updatedHero
+    );
+
+    // Assert
+    expect(fromLeft(response).response?.status).toBe(400);
+  });
+
+  it("Returns 404 Not Found when trying to delete a nonexistent hero", async () => {
+    // Arrange - not needed
+
+    // Act
+    const response = await fpAxios.delete(`/heroes/${uuidv4()}`);
+
+    // Assert
+    expect(fromLeft(response).response?.status).toBe(404);
+  });
+
+  it("Returns 404 Not Found when trying to request a deleted hero", async () => {
+    // Arrange
+    const hero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Deleted Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+    await axios.post("/heroes", hero);
+    await axios.delete(`/heroes/${hero.id}`);
+
+    // Act
+    const getResponse = await fpAxios.get(`/heroes/${hero.id}`);
+
+    // Assert
+    expect(fromLeft(getResponse).response?.status).toBe(404);
+  });
+
+  it("Returns 204 No Content when deleting an existing hero", async () => {
+    // Arrange
+    const hero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Deleted Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+    await axios.post("/heroes", hero);
+
+    // Act
+    const deleteResponse = await axios.delete(`/heroes/${hero.id}`);
+
+    // Assert
+    expect(deleteResponse.status).toBe(204);
+  });
 });
