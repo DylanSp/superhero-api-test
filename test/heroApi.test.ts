@@ -14,6 +14,7 @@ import { fromRight, fromLeft } from "../src/fromFp";
 import { fpAxios } from "../src/fpAxios";
 
 axios.defaults.baseURL = baseUrl;
+jest.setTimeout(10000); // necessary if Hero database gets too big (with current inefficient implementation)
 
 describe("Hero API", () => {
   it("Returns 201 Created response with hero data, location when creating a new hero", async () => {
@@ -306,5 +307,47 @@ describe("Hero API", () => {
     const returnedHeroes = fromRight(t.array(Hero).decode(searchResponse.data));
     expect(returnedHeroes).toContainEqual(heroInSearch);
     expect(returnedHeroes).not.toContainEqual(heroNotInSearch);
+  });
+
+  it("Returns heroes searched for by both name and location", async () => {
+    // Arrange
+    const name = "SearchName";
+    const location = "SearchLocation";
+
+    const heroInSearch: Hero = {
+      id: uuidv4() as UUID,
+      name,
+      location,
+      powers: [],
+    };
+
+    const heroNotInNameSearch: Hero = {
+      id: uuidv4() as UUID,
+      name: `Not${name}`,
+      location,
+      powers: [],
+    };
+
+    const heroNotInLocationSearch: Hero = {
+      id: uuidv4() as UUID,
+      name,
+      location: `Not${location}`,
+      powers: [],
+    };
+
+    await axios.post("/heroes", heroInSearch);
+    await axios.post("/heroes", heroNotInNameSearch);
+    await axios.post("/heroes", heroNotInLocationSearch);
+
+    // Act
+    const searchResponse = await axios.get(
+      `/heroes?name=${name}&location=${location}`
+    );
+
+    // Assert
+    const returnedHeroes = fromRight(t.array(Hero).decode(searchResponse.data));
+    expect(returnedHeroes).toContainEqual(heroInSearch);
+    expect(returnedHeroes).not.toContainEqual(heroNotInNameSearch);
+    expect(returnedHeroes).not.toContainEqual(heroNotInLocationSearch);
   });
 });
