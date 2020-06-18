@@ -247,4 +247,34 @@ describe("Hero API", () => {
     // Assert
     expect(deleteResponse.status).toBe(204);
   });
+
+  it("Returns heroes searched for by location", async () => {
+    // Arrange
+    const location = "SearchLocation";
+
+    const heroInSearch: Hero = {
+      id: uuidv4() as UUID,
+      name: "TestHero",
+      location,
+      powers: [],
+    };
+
+    const heroNotInSearch: Hero = {
+      id: uuidv4() as UUID,
+      name: "TestHero",
+      location: `Not${location}`,
+      powers: [],
+    };
+
+    await axios.post("/heroes", heroInSearch);
+    await axios.post("/heroes", heroNotInSearch);
+
+    // Act
+    const searchResponse = await axios.get(`/heroes?location=${location}`);
+
+    // Assert
+    const returnedHeroes = fromRight(t.array(Hero).decode(searchResponse.data));
+    expect(returnedHeroes).toContainEqual(heroInSearch);
+    expect(returnedHeroes).not.toContainEqual(heroNotInSearch);
+  });
 });
