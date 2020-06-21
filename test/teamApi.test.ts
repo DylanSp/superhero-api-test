@@ -250,4 +250,100 @@ describe("Team API", () => {
     // Assert
     expect(deleteResponse.status).toBe(204);
   });
+
+  it("Returns teams searched for by name", async () => {
+    // Arrange
+    const name = "SearchName";
+
+    const teamInSearch: Team = {
+      id: uuidv4() as UUID,
+      name,
+      members: [],
+    };
+
+    const teamNotInSearch: Team = {
+      id: uuidv4() as UUID,
+      name: `Not${name}`,
+      members: [],
+    };
+
+    await axios.post("/teams", teamInSearch);
+    await axios.post("/teams", teamNotInSearch);
+
+    // Act
+    const searchResponse = await axios.get(`/teams?teamName=${name}`);
+
+    // Assert
+    const returnedTeams = fromRight(t.array(Team).decode(searchResponse.data));
+    expect(returnedTeams).toContainEqual(teamInSearch);
+    expect(returnedTeams).not.toContainEqual(teamNotInSearch);
+  });
+
+  it("Returns teams searched for by hero ID", async () => {
+    // Arrange
+    const name = "SearchName";
+
+    const hero: Hero = {
+      id: uuidv4() as UUID,
+      name: "Test Hero",
+      location: "Test Suite",
+      powers: [],
+    };
+    const teamInSearch: Team = {
+      id: uuidv4() as UUID,
+      name,
+      members: [hero],
+    };
+
+    const teamNotInSearch: Team = {
+      id: uuidv4() as UUID,
+      name,
+      members: [],
+    };
+
+    await axios.post("/teams", teamInSearch);
+    await axios.post("/teams", teamNotInSearch);
+
+    // Act
+    const searchResponse = await axios.get(`/teams?heroId=${hero.id}`);
+
+    // Assert
+    const returnedTeams = fromRight(t.array(Team).decode(searchResponse.data));
+    expect(returnedTeams).toContainEqual(teamInSearch);
+    expect(returnedTeams).not.toContainEqual(teamNotInSearch);
+  });
+
+  it("Returns teams searched for by hero name", async () => {
+    // Arrange
+    const name = "SearchName";
+
+    const hero: Hero = {
+      id: uuidv4() as UUID,
+      name: uuidv4(),
+      location: "Test Suite",
+      powers: [],
+    };
+    const teamInSearch: Team = {
+      id: uuidv4() as UUID,
+      name,
+      members: [hero],
+    };
+
+    const teamNotInSearch: Team = {
+      id: uuidv4() as UUID,
+      name,
+      members: [],
+    };
+
+    await axios.post("/teams", teamInSearch);
+    await axios.post("/teams", teamNotInSearch);
+
+    // Act
+    const searchResponse = await axios.get(`/teams?heroName=${hero.name}`);
+
+    // Assert
+    const returnedTeams = fromRight(t.array(Team).decode(searchResponse.data));
+    expect(returnedTeams).toContainEqual(teamInSearch);
+    expect(returnedTeams).not.toContainEqual(teamNotInSearch);
+  });
 });
