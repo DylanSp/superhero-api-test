@@ -212,4 +212,32 @@ describe("Power API", () => {
     // Assert
     expect(deleteResponse.status).toBe(204);
   });
+
+  it("Returns powers searched for by name", async () => {
+    // Arrange
+    const name = "SearchName";
+
+    const powerInSearch: Power = {
+      id: uuidv4() as UUID,
+      name,
+    };
+
+    const powerNotInSearch: Power = {
+      id: uuidv4() as UUID,
+      name: `Not${name}`,
+    };
+
+    await axios.post("/powers", powerInSearch);
+    await axios.post("/powers", powerNotInSearch);
+
+    // Act
+    const searchResponse = await axios.get(`/powers?name=${name}`);
+
+    // Assert
+    const returnedPowers = fromRight(
+      t.array(Power).decode(searchResponse.data)
+    );
+    expect(returnedPowers).toContainEqual(powerInSearch);
+    expect(returnedPowers).not.toContainEqual(powerNotInSearch);
+  });
 });
